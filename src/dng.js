@@ -24,7 +24,6 @@ class DNG
     
     static pack10(data)
     {
-        
         out = np.zeros((data.shape[0], int(data.shape[1]*(1.25))), dtype=np.uint8)
         out[:, ::5] = data[:, ::4] >> 2
         out[:, 1::5] = ((data[:, ::4] & 0b0000000000000011) << 6)
@@ -47,8 +46,6 @@ class DNG
         out[:, 2::3] = data[:, 1::2] & 0b0000001111111111
         return out
     }
-
-
     static pack14(data)
     {
         out = np.zeros((data.shape[0], int(data.shape[1]*(1.75))), dtype=np.uint8)
@@ -64,10 +61,6 @@ class DNG
         out[:, 5::7] = ((data[:, 4::6] & 0b0000000000111111) << 2)
         out[:, 5::7] += data[:, 5::6] >> 8
         out[:, 6::7] = data[:, 5::6] & 0b0000000011111111
-    }
-    setTag(type,value)
-    {
-
     }
     static convert(image,tags,name,path)
     {
@@ -146,9 +139,8 @@ class DNG
         }
     }
         
-            
-
-    def dataLen(self):
+    dataLen(self)
+    {
         totalLength = 8
         for ifd in self.IFDs:
             totalLength += (ifd.dataLen() + 3) & 0xFFFFFFFC
@@ -159,14 +151,14 @@ class DNG
             totalLength += (len(strip) + 3) & 0xFFFFFFFC
             
         return (totalLength + 3) & 0xFFFFFFFC
-
-    def write(self):
-        struct.pack_into("<ccbbI", self.buf, 0, b'I', b'I', 0x2A, 0x00, 8) # assume the first IFD happens immediately after header
-
+    }
+    write()
+    {
+        struct.pack_into("<ccbbI", self.buf, 0, b'I', b'I', 0x2A, 0x00, 8) 
         for ifd in self.IFDs:
             ifd.write()
-
         for i in range(len(self.ImageDataStrips)):
             self.buf[self.StripOffsets[i]:self.StripOffsets[i]+len(self.ImageDataStrips[i])] = self.ImageDataStrips[i]
+    }
 }
 module.exports = DNG;
