@@ -125,16 +125,16 @@ class Tag
             {
                tmp.writeUInt8(0,i);
             }
-            this.Value.copy(tmp,0,0,offset-1);
+            this.Value.copy(tmp,0,0,offset);
             this.Value = tmp;
         }
     }
 
     setBuffer(buf, tagOffset, dataOffset)
     {
-        this.buf = buf
-        this.TagOffset = tagOffset
-        this.DataOffset = dataOffset
+        this.buf = buf;
+        this.TagOffset = tagOffset;
+        this.DataOffset = dataOffset;
         if(this.subIFD)
         {
             this.subIFD.setBuffer(buf, this.DataOffset)
@@ -163,7 +163,7 @@ class Tag
             buf.writeUInt16LE(DataType.Long[0],2);
             buf.writeUInt32LE(this.DataCount,4);
             buf.writeUInt32LE(this.DataOffset,8);
-            buf.copy(this.buf,this.TagOffset,0,11);
+            buf.copy(this.buf,this.TagOffset,0,12);
         }
         else
         {
@@ -173,8 +173,8 @@ class Tag
                 buf.writeUInt16LE(this.TagId,0);
                 buf.writeUInt16LE(this.DataType[0],2);
                 buf.writeUInt32LE(this.DataCount,4);
-                this.Value.copy(buf,8,0,3)
-                buf.copy(this.buf,this.TagOffset,0,11);
+                this.Value.copy(buf,8,0,4)
+                buf.copy(this.buf,this.TagOffset,0,12);
             }    
             else
             {
@@ -183,8 +183,8 @@ class Tag
                 buf.writeUInt16LE(this.DataType[0],2);
                 buf.writeUInt32LE(this.DataCount,4);
                 buf.writeUInt32LE(this.DataOffset,8);
-                buf.copy(this.buf,this.TagOffset,0,11);
-                this.Value.copy(this.buf,this.DataOffset,0,this.DataLength-1);
+                buf.copy(this.buf,this.TagOffset,0,12);
+                this.Value.copy(this.buf,this.DataOffset,0,this.DataLength);
             }
         }
     }  
