@@ -10,8 +10,8 @@ class IFD
     {
         this.buf = buf
         this.offset = offset
-        currentDataOffset = offset + 2 + this.tags.length*12 + 4
-        currentTagOffset = offset + 2
+        let currentDataOffset = offset + 2 + this.tags.length*12 + 4
+        let currentTagOffset = offset + 2
         this.tags.forEach(tag=>{
             tag.setBuffer(buf, currentTagOffset, currentDataOffset);
             currentTagOffset += 12;
@@ -19,9 +19,9 @@ class IFD
             currentDataOffset = (currentDataOffset + 3) & 0xFFFFFFFC;
         })
     }
-    dataLen(self)
+    dataLen()
     {
-        totalLength = 2 + len(self.tags)*12 + 4
+        let totalLength = 2 + this.tags.length*12 + 4
         this.tags.forEach(tag=>{
             totalLength += tag.dataLen()
         });
@@ -37,4 +37,4 @@ class IFD
         this.buf.writeUInt32LE(this.offset + 2 + (this.tags.length)*12,this.NextIFDOffset);
     }
 }
-module.exports = IFD;
+module.exports = {IFD};

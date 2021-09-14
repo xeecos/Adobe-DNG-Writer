@@ -1,5 +1,6 @@
-const {TagType} = require("./tag");
-
+const {Tag} = require("./tag");
+const {TagType} = require('./types')
+const {IFD} = require('./ifd')
 class Header
 {
     constructor()
@@ -37,66 +38,68 @@ class DNG
     static convert(image,tags,name,path)
     {
         let dngTemplate = new DNG()
-        let rawFrame = self.__process__(image)
-        let file_output = True
-        let width = tags.get(TagType.ImageWidth)[0]
-        let length = tags.get(TagType.ImageLength)[0]
-        let bpp = tags.get(TagType.BitsPerSample)[0]
+        // let rawFrame = self.__process__(image)
+        let rawFrame = image;
+        // let file_output = True
+        // let width = tags.ImageWidth.rawValue;
+        // let length = tags.ImageLength.rawValue;
+        let bpp = tags.BitsPerSample.rawValue;
+        let tile;
         if(bpp == 8)
         {
             tile = rawFrame;
         }
         else if(bpp == 10)
         {
-            tile = pack10(rawFrame);
+            tile = DNG.pack10(rawFrame);
         }
         else if(bpp == 12)
         {
-            tile = pack12(rawFrame);
+            tile = DNG.pack12(rawFrame);
         }
         else if(bpp == 14)
         {
-            tile = pack14(rawFrame);
+            tile = DNG.pack14(rawFrame);
         }
         else if(bpp == 16)
         {
             tile = rawFrame;
         }
 
-        dngTemplate.ImageDataStrips.append(tile)
+        dngTemplate.ImageDataStrips.push(tile)
         let mainIFD = new IFD()
-        let mainTagStripOffset = new Tag(TagType.TileOffsets, [0 for tile in dngTemplate.ImageDataStrips])
-        mainIFD.tags.append(mainTagStripOffset)
-        mainIFD.tags.append(new Tag(TagType.NewSubfileType, [0]))
-        mainIFD.tags.append(new Tag(TagType.TileByteCounts, [len(tile) for tile in dngTemplate.ImageDataStrips]))
-        mainIFD.tags.append(new Tag(TagType.Compression, [compression_scheme]))
-        mainIFD.tags.append(new Tag(TagType.Software, "PyDNG"))
+        let tileOffsets = [];
+        let tileLengths = [];
+        for(let i=0;i<dngTemplate.ImageDataStrips.length;i++)
+        {
+            tileLengths.push(dngTemplate.ImageDataStrips[i].length)
+            tileOffsets.push(0);
+        }
+        let mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets)
+        mainIFD.tags.push(mainTagStripOffset)
+        mainIFD.tags.push(new Tag(TagType.NewSubfileType, [0]))
+        mainIFD.tags.push(new Tag(TagType.TileByteCounts,tileLengths))
+        mainIFD.tags.push(new Tag(TagType.Compression, [7]))
+        mainIFD.tags.push(new Tag(TagType.Software, "JSDNG"))
 
-        for tag in tags.list():
-            try:
-                mainIFD.tags.append(new Tags(tag[0], tag[1]))
-            except Exception as e:
-                print("TAG Encoding Error!", e, tag)
+        for(let i in tags)
+        {
+            mainIFD.tags.push(tags[i]);
+        }
+        dngTemplate.IFDs.push(mainIFD);
 
-        dngTemplate.IFDs.append(mainIFD)
+        let totalLength = dngTemplate.dataLen()
+        let offsets = [];
+        for(let i=0;i<dngTemplate.StripOffsets.length;i++)
+        {
+            offsets.push(dngTemplate.StripOffsets[i]);
+        }
+        mainTagStripOffset.setValue(offsets);
 
-        totalLength = dngTemplate.dataLen()
-
-        mainTagStripOffset.setValue([k for offset, k in dngTemplate.StripOffsets.items()])
-
-        buf = Buffer.alloc(totalLength)
+        let buf = Buffer.alloc(totalLength)
         dngTemplate.setBuffer(buf)
         dngTemplate.write()
-
-        if file_output:
-            if not filename.endswith(".dng"):
-                filename = filename + '.dng'
-            outputDNG = os.path.join(path, filename)
-            with open(outputDNG, "wb") as outfile:
-                outfile.write(buf)
-            return outputDNG
-        else:
-            return buf
+        return buf
     }
     
 
@@ -104,33 +107,41 @@ class DNG
     {
         this.buf = buf
         let currentOffset = 8
-        for(ifd in this.IFDs)
-        {
+        this.IFDs.forEach(ifd=>{
             ifd.setBuffer(buf, currentOffset)
             currentOffset += ifd.dataLen()
-        }
+        });
     }
         
-    dataLen(self)
+    dataLen()
     {
-        totalLength = 8
-        for ifd in self.IFDs:
+        let totalLength = 8
+        this.IFDs.forEach(ifd=>{
             totalLength += (ifd.dataLen() + 3) & 0xFFFFFFFC
-
-        for i in range(len(self.ImageDataStrips)):
-            self.StripOffsets[i] = totalLength
-            strip = self.ImageDataStrips[i]
-            totalLength += (len(strip) + 3) & 0xFFFFFFFC
+        })
+        for(let i=0,len= this.ImageDataStrips.length;i<len;i++)
+        {
+            this.StripOffsets[i] = totalLength
+            let strip = this.ImageDataStrips[i]
+            totalLength += ((strip.length) + 3) & 0xFFFFFFFC
+        }
             
         return (totalLength + 3) & 0xFFFFFFFC
     }
     write()
     {
-        struct.pack_into("<ccbbI", self.buf, 0, b'I', b'I', 0x2A, 0x00, 8) 
-        for ifd in self.IFDs:
-            ifd.write()
-        for i in range(len(self.ImageDataStrips)):
-            self.buf[self.StripOffsets[i]:self.StripOffsets[i]+len(self.ImageDataStrips[i])] = self.ImageDataStrips[i]
+        this.buf.writeUInt8('I',0);
+        this.buf.writeUInt8('I',1);
+        this.buf.writeUInt8(0x2A,2);
+        this.buf.writeUInt8(0,3);
+        this.buf.writeUInt32LE(8,4);
+        this.IFDs.forEach(ifd=>{
+            ifd.write();
+        });
+        for(let i=0,len= this.ImageDataStrips.length;i<len;i++)
+        {
+            this.ImageDataStrips[i].copy(this.buf,this.StripOffsets[i],0,(this.ImageDataStrips[i].length))
+        }
     }
 }
-module.exports = DNG;
+module.exports = {DNG};
