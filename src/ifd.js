@@ -34,7 +34,7 @@ class IFD
         this.tags.forEach(tag=>{
             tag.write();
         });
-        this.buf.writeUInt32LE(this.offset + 2 + (this.tags.length)*12,this.NextIFDOffset);
+        this.buf.writeUInt32LE(this.NextIFDOffset,this.offset + 2 + (this.tags.length)*12);
     }
 }
 module.exports = {IFD};

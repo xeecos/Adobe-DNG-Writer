@@ -2,16 +2,16 @@ const fs = require('fs');
 const {Tag} = require('../src/tag');
 const {TagType} = require('../src/types')
 const {DNG} = require('../src/dng')
-let width = 64;
-let height = 64;
+let width = 1920;
+let height = 1080;
 let bpp = 12;
 
-// let rawFile = '../assets/tesdng.raw16';
-// let rawData = fs.readFileSync(rawFile);
+let rawFile = './assets/hello.dng';
+console.log(fs.readFileSync(rawFile));
 let rawData = Buffer.alloc(width*height*2);
-for(let i=0;i<4096;i++)
+for(let i=0,len=width*height;i<len;i++)
 {
-    rawData.writeUInt8(0xff,i);
+    rawData.writeUInt16LE(0xffff,i);
 }
 let ccm1 = [[19549, 10000], [-7877, 10000], [-2582, 10000],	
         [-5724, 10000], [10121, 10000], [1917, 10000],
@@ -38,4 +38,4 @@ tags.Make = (new Tag(TagType.Make, "Camera Brand"));
 tags.Model = (new Tag(TagType.Model, "Camera Model"));
 tags.PreviewColorSpace = (new Tag(TagType.PreviewColorSpace, 2));
 let buffer = DNG.convert(rawData, tags, "custom", "")
-console.log(buffer);
+fs.writeFileSync('out.dng',buffer);

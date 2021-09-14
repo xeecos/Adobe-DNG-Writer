@@ -40,10 +40,9 @@ class DNG
         let dngTemplate = new DNG()
         // let rawFrame = self.__process__(image)
         let rawFrame = image;
-        // let file_output = True
-        // let width = tags.ImageWidth.rawValue;
-        // let length = tags.ImageLength.rawValue;
-        let bpp = tags.BitsPerSample.rawValue;
+        let width = tags.ImageWidth.rawValue[0];
+        let length = tags.ImageLength.rawValue[0];
+        let bpp = tags.BitsPerSample.rawValue[0];
         let tile;
         if(bpp == 8)
         {
@@ -89,6 +88,7 @@ class DNG
         dngTemplate.IFDs.push(mainIFD);
 
         let totalLength = dngTemplate.dataLen()
+        console.log("totalLength:",totalLength,width,length)
         let offsets = [];
         for(let i=0;i<dngTemplate.StripOffsets.length;i++)
         {
@@ -108,30 +108,29 @@ class DNG
         this.buf = buf
         let currentOffset = 8
         this.IFDs.forEach(ifd=>{
-            ifd.setBuffer(buf, currentOffset)
-            currentOffset += ifd.dataLen()
+            ifd.setBuffer(buf, currentOffset);
+            currentOffset += ifd.dataLen();
         });
     }
         
     dataLen()
     {
-        let totalLength = 8
+        let totalLength = 8;
         this.IFDs.forEach(ifd=>{
             totalLength += (ifd.dataLen() + 3) & 0xFFFFFFFC
-        })
+        });
         for(let i=0,len= this.ImageDataStrips.length;i<len;i++)
         {
             this.StripOffsets[i] = totalLength
             let strip = this.ImageDataStrips[i]
             totalLength += ((strip.length) + 3) & 0xFFFFFFFC
         }
-            
         return (totalLength + 3) & 0xFFFFFFFC
     }
     write()
     {
-        this.buf.writeUInt8('I',0);
-        this.buf.writeUInt8('I',1);
+        this.buf.writeUInt8(0x49,0);
+        this.buf.writeUInt8(0x49,1);
         this.buf.writeUInt8(0x2A,2);
         this.buf.writeUInt8(0,3);
         this.buf.writeUInt32LE(8,4);
