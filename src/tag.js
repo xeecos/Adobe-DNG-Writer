@@ -90,20 +90,38 @@ class Tag
             this.Value = Buffer.alloc(len*8);
             for(let i=0;i<len;i++)
             {
-                this.Value.writeDouble4LE(value[i],i*8);
+                this.Value.writeDoubleLE(value[i],i*8);
             }
         }
-        // else if(this.DataType == DataType.Rational)
-        // {   
-        //     this.Value = struct.pack('<%sL' % (len(value)*2), *[item for sublist in value for item in sublist])
-        // }
-        // else if(this.DataType == DataType.Srational)
-        // {   
-        //     this.Value = struct.pack('<%sl' % (len(value)*2), *[item for sublist in value for item in sublist])
-        // }
+        else if(this.DataType == DataType.Rational)
+        {   
+            this.Value = Buffer.alloc(len*2*4);
+            let idx = 0;
+            for(let i=0;i<len;i++)
+            {
+                for(let j=0;j<2;j++)
+                {
+                    this.Value.writeUInt32LE(value[i][j],idx);
+                    idx+=4;
+                }
+            }
+        }
+        else if(this.DataType == DataType.Srational)
+        {   
+            this.Value = Buffer.alloc(len*2*4);
+            let idx = 0;
+            for(let i=0;i<len;i++)
+            {
+                for(let j=0;j<2;j++)
+                {
+                    this.Value.writeInt32LE(value[i][j],idx);
+                    idx+=4;
+                }
+            }
+        }
         else if(this.DataType == DataType.Ascii)
         {   
-            this.Value = Buffer.from(value);
+            this.Value = Buffer.from(value+"\0");
             this.DataCount += 1
         }
         else if(this.DataType == DataType.IFD)

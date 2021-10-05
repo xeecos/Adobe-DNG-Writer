@@ -74,12 +74,13 @@ class DNG
             tileLengths.push(dngTemplate.ImageDataStrips[i].length)
             tileOffsets.push(0);
         }
+        console.log(tileOffsets)
         let mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets)
         mainIFD.tags.push(mainTagStripOffset)
         mainIFD.tags.push(new Tag(TagType.NewSubfileType, [0]))
         mainIFD.tags.push(new Tag(TagType.TileByteCounts,tileLengths))
-        mainIFD.tags.push(new Tag(TagType.Compression, [7]))
-        mainIFD.tags.push(new Tag(TagType.Software, "JSDNG"))
+        mainIFD.tags.push(new Tag(TagType.Compression, [1]))
+        mainIFD.tags.push(new Tag(TagType.Software, "PyDNG"))
 
         for(let i in tags)
         {
@@ -90,16 +91,16 @@ class DNG
         let totalLength = dngTemplate.dataLen()
         console.log("totalLength:",totalLength,width,length)
         let offsets = [];
-        for(let i=0;i<dngTemplate.StripOffsets.length;i++)
+        for(let i in dngTemplate.StripOffsets)
         {
             offsets.push(dngTemplate.StripOffsets[i]);
         }
         mainTagStripOffset.setValue(offsets);
 
-        let buf = Buffer.alloc(totalLength)
-        dngTemplate.setBuffer(buf)
-        dngTemplate.write()
-        return buf
+        let buf = Buffer.alloc(totalLength);
+        dngTemplate.setBuffer(buf);
+        dngTemplate.write();
+        return buf;
     }
     
 

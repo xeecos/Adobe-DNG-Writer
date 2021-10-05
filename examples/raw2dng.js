@@ -2,14 +2,14 @@ const fs = require('fs');
 const {Tag} = require('../src/tag');
 const {TagType} = require('../src/types')
 const {DNG} = require('../src/dng')
-let width = 64;
-let height = 64;
-let bpp = 12;
+let width = 1280;
+let height = 960;
+let bpp = 16;
 
 let rawData = Buffer.alloc(width*height*2);
 for(let i=0,len=width*height;i<len;i++)
 {
-    rawData.writeUInt16LE(0xffff,i);
+    rawData.writeUInt16LE((0xffff*Math.random())>>0,i*2);
 }
 let ccm1 = [[19549, 10000], [-7877, 10000], [-2582, 10000],	
         [-5724, 10000], [10121, 10000], [1917, 10000],
@@ -27,16 +27,29 @@ tags.CFARepeatPatternDim = (new Tag(TagType.CFARepeatPatternDim, [2,2]));
 tags.CFAPattern = (new Tag(TagType.CFAPattern, [1, 2, 0, 1]));
 tags.BlackLevel = (new Tag(TagType.BlackLevel, (4096 >> (16 - bpp))));
 tags.WhiteLevel = (new Tag(TagType.WhiteLevel, ((1 << bpp) -1) ));
-// tags.push(new Tag(TagType.ColorMatrix1, ccm1));
+tags.ColorMatrix1 = (new Tag(TagType.ColorMatrix1, ccm1));
 tags.CalibrationIlluminant1 = (new Tag(TagType.CalibrationIlluminant1, 21));
-// tags.push(new Tag(TagType.AsShotNeutral, [[1,1],[1,1],[1,1]]));
+tags.AsShotNeutral = (new Tag(TagType.AsShotNeutral, [[1,1],[1,1],[1,1]]));
 tags.DNGVersion = (new Tag(TagType.DNGVersion, [1, 4, 0, 0]));
 tags.DNGBackwardVersion = (new Tag(TagType.DNGBackwardVersion, [1, 2, 0, 0]));
 tags.Make = (new Tag(TagType.Make, "Camera Brand"));
 tags.Model = (new Tag(TagType.Model, "Camera Model"));
-tags.PreviewColorSpace = (new Tag(TagType.PreviewColorSpace, 2));
+tags.PreviewColorSpace = (new Tag(TagType.PreviewColorSpace, [2]));
 let buffer = DNG.convert(rawData, tags, "custom", "")
-let rawFile = './assets/hello.dng';
-console.log(fs.readFileSync(rawFile));
-console.log(buffer)
+let rawFile = './assets/white.dng';
+let buf = (fs.readFileSync(rawFile));
+let arr = []
+for(let i=0;i<buf.length;i++)
+{
+    arr.push(buf[i])
+}
+fs.writeFileSync('out.txt',arr.join("\n"));
+arr = []
+for(let i=0;i<buffer.length;i++)
+{
+    arr.push(buffer[i])
+}
+fs.writeFileSync('out2.txt',arr.join("\n"));
+// console.log(buf)
+// console.log(buffer)
 fs.writeFileSync('out.dng',buffer);
