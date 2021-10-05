@@ -1,0 +1,11 @@
+{
+  "name": "Adobe-DNG-Writer",
+  "version": "1.0.0",
+  "main": "examples/raw2dng.js",
+  "repository": "https://github.com/xeecos/Adobe-DNG-Writer",
+  "author": "虎子哥 <flashindream@gmail.com>",
+  "license": "GPL_v3",
+  "scripts": {
+    "start":"node ."
+  }
+}
