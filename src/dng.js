@@ -89,7 +89,6 @@ class DNG
         dngTemplate.IFDs.push(mainIFD);
 
         let totalLength = dngTemplate.dataLen()
-        console.log("totalLength:",totalLength,width,length)
         let offsets = [];
         for(let i in dngTemplate.StripOffsets)
         {
