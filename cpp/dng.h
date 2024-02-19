@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 class Header
 {
     public:
@@ -129,4 +130,6 @@ class DNG
                 this.ImageDataStrips[i].copy(this.buf,this.StripOffsets[i],0,(this.ImageDataStrips[i].length))
             }
         }
+    private:
+        vector<IFD> IFDs;
 }
