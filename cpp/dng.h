@@ -19,9 +19,9 @@ class DNG
     public:
         DNG()
         {
-            this.IFDs = []
-            this.ImageDataStrips = []
-            this.StripOffsets = {}
+            IFDs = []
+            ImageDataStrips = []
+            StripOffsets = {}
         }
         void convert(image,tags,name,path)
         {
