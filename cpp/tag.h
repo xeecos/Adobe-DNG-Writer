@@ -1,209 +1,233 @@
 #pragma once
+#include "types.h"
+struct DataBuffer
+{
+    unsigned char* data;
+    int size;
+};
 class Tag
 {
     public:
-        Tag(tagType=TagType.Invalid, value=[])
+        TagType Type;
+        int TagId;
+        DataTypeEnum DataType;
+        int DataCount;
+        int DataOffset;
+        bool selfContained;
+        vector<double> rawValue;
+        int DataLength;
+        char* subIFD;
+        DataBuffer DataValue;
+        Tag(TagType tagType, vector<double> value)
         {
-            if(typeof value=='number')
-            {
-                value = [value];
-            }
-            this.Type = tagType;
-            this.TagId = tagType[0];
-            this.DataType = tagType[1];
-            this.DataCount = value.length;
-            this.DataOffset = 0;
-            this.subIFD = null;
-            this.setValue(value)
-            this.rawValue = value;
-            this.DataLength = this.Value.length;
-            this.selfContained = this.DataLength <= 4;                   
+            Type = tagType;
+            TagId = tagType.id;
+            DataType = tagType.dataType;
+            DataCount = value.size();
+            DataOffset = 0;
+            subIFD = NULL;
+            setValue(value);
+            rawValue = value;
+            DataLength = DataValue.size;
+            selfContained = DataLength <= 4;                   
         };
-        void setValue(value)
+        void setValue(vector<double> value)
         {
-            let len = value.length;
-            if(this.DataType == DataType.Byte)
+            int len = value.size();
+            if(DataType == DataTypeEnum::Byte)
             {
-                this.Value = Buffer.alloc(len);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len);
+                DataValue.size = len;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeUInt8(value[i],i);
+                    DataValue.data[i] =value[i];
                 }
             }
-            else if(this.DataType == DataType.Short)
+            else if(DataType == DataTypeEnum::Short)
             {
-                this.Value = Buffer.alloc(len*2);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*2);
+                DataValue.size = len*2;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeUInt16LE(value[i],i*2);
+                    DataValue.writeUInt16LE(value[i],i*2);
                 }
             }
-            else if(this.DataType == DataType.Long)
+            else if(DataType == DataTypeEnum::Long)
             {
-                this.Value = Buffer.alloc(len*4);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*4);
+                DataValue.size = len*4;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeUInt32LE(value[i],i*4);
+                    DataValue.writeUInt32LE(value[i],i*4);
                 }
             }
-            else if(this.DataType == DataType.Sbyte)
+            else if(DataType == DataTypeEnum::Sbyte)
             {
-                this.Value = Buffer.alloc(len);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len);
+                DataValue.size = len;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeInt8(value[i],i);
+                    DataValue.writeInt8(value[i],i);
                 }
             }
-            else if(this.DataType == DataType.Undefined)
+            else if(DataType == DataTypeEnum::Undefined)
             {   
-                this.Value = Buffer.alloc(len);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len);
+                DataValue.size = len;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeUInt8(value[i],i);
+                    DataValue.writeUInt8(value[i],i);
                 }
             }
-            else if(this.DataType == DataType.Sshort)
+            else if(DataType == DataTypeEnum::Sshort)
             {    
-                this.Value = Buffer.alloc(len*2);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*2);
+                DataValue.size = len*2;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeInt16LE(value[i],i*2);
+                    DataValue.writeInt16LE(value[i],i*2);
                 }
             }
-            else if(this.DataType == DataType.Slong)
+            else if(DataType == DataTypeEnum::Slong)
             {   
-                this.Value = Buffer.alloc(len*4);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*4);
+                DataValue.size = len*4;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeInt32LE(value[i],i*4);
+                    DataValue.writeInt32LE(value[i],i*4);
                 }
             }
-            else if(this.DataType == DataType.Float)
+            else if(DataType == DataTypeEnum::Float)
             {   
-                this.Value = Buffer.alloc(len*4);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*4);
+                DataValue.size = len*4;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeFloatLE(value[i],i*4);
+                    DataValue.writeFloatLE(value[i],i*4);
                 }
             }
-            else if(this.DataType == DataType.Double)
+            else if(DataType == DataTypeEnum::Double)
             {   
-                this.Value = Buffer.alloc(len*8);
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*8);
+                DataValue.size = len*8;
+                for(int i=0;i<len;i++)
                 {
-                    this.Value.writeDoubleLE(value[i],i*8);
+                    DataValue.writeDoubleLE(value[i],i*8);
                 }
             }
-            else if(this.DataType == DataType.Rational)
+            else if(DataType == DataTypeEnum::Rational)
             {   
-                this.Value = Buffer.alloc(len*2*4);
-                let idx = 0;
-                for(let i=0;i<len;i++)
+                DataValue.data = (unsigned char*)malloc(len*2*4);
+                DataValue.size = len*2*4;
+                int idx = 0;
+                for(int i=0;i<len;i++)
                 {
-                    for(let j=0;j<2;j++)
+                    for(int j=0;j<2;j++)
                     {
-                        this.Value.writeUInt32LE(value[i][j],idx);
+                        DataValue.writeUInt32LE(value[i][j],idx);
                         idx+=4;
                     }
                 }
             }
-            else if(this.DataType == DataType.Srational)
+            else if(DataType == DataTypeEnum::Srational)
             {   
-                this.Value = Buffer.alloc(len*2*4);
+                DataValue.data = (unsigned char*)malloc(len*2*4);
+                DataValue.size = len*2*4;
                 let idx = 0;
-                for(let i=0;i<len;i++)
+                for(int i=0;i<len;i++)
                 {
-                    for(let j=0;j<2;j++)
+                    for(int j=0;j<2;j++)
                     {
-                        this.Value.writeInt32LE(value[i][j],idx);
+                        DataValue.writeInt32LE(value[i][j],idx);
                         idx+=4;
                     }
                 }
             }
-            else if(this.DataType == DataType.Ascii)
+            else if(DataType == DataTypeEnum::Ascii)
             {   
-                this.Value = Buffer.from(value+"\0");
-                this.DataCount += 1
+                DataValue = Buffer.from(value+"\0");
+                DataCount += 1;
             }
-            else if(this.DataType == DataType.IFD)
+            else if(DataType == DataTypeEnum::IFD)
             {   
-                this.Value = Buffer.from([0,0,0,0]);
-                this.subIFD = value[0]
+                DataValue.data = (unsigned char*)malloc(4);
+                DataValue.size = 4;
+                subIFD = value[0];
             }
             else
             {
-                console.log("unknow data type:",this.DataType);
+                printf("unknow data type:%d",DataType);
             }
-            let count = ((((this.Value.byteLength+3) & 0xFFFFFFFC) - (this.Value.byteLength)));
-            let offset = this.Value.byteLength;
+            int count = ((((DataValue.size+3) & 0xFFFFFFFC) - (DataValue.size)));
+            int offset = DataValue.size;
             if(count>0)
             {
-                let tmp = Buffer.alloc(offset+count);
-                
-                for(let i=0;i<tmp.byteLength;i++)
+                unsigned char* tmp = (unsigned char*)malloc(offset+count);
+                int byteLength = offset+count;
+                for(int i=0;i<byteLength;i++)
                 {
-                tmp.writeUInt8(0,i);
+                    tmp.writeUInt8(0,i);
                 }
-                this.Value.copy(tmp,0,0,offset);
-                this.Value = tmp;
+                DataValue.data.copy(tmp,0,0,offset);
+                DataValue.data = tmp;
             }
         }
 
         void setBuffer(buf, tagOffset, dataOffset)
         {
-            this.buf = buf;
-            this.TagOffset = tagOffset;
-            this.DataOffset = dataOffset;
-            if(this.subIFD)
+            buf = buf;
+            TagOffset = tagOffset;
+            DataOffset = dataOffset;
+            if(subIFD)
             {
-                this.subIFD.setBuffer(buf, this.DataOffset)
+                subIFD.setBuffer(buf, DataOffset)
             }            
         }
         int dataLen()
         {
-            if(this.subIFD)
+            if(subIFD)
             {
-                return this.subIFD.dataLen()
+                return subIFD.dataLen()
             }
                 
-            if(this.selfContained)
+            if(selfContained)
             {
                 return 0
             }
-            return (this.Value.byteLength + 3) & 0xFFFFFFFC
+            return (DataValue.byteLength + 3) & 0xFFFFFFFC
         } 
         void write()
         {
-            if(this.subIFD)
+            if(subIFD)
             {
-                this.subIFD.write();
+                subIFD.write();
                 let buf = Buffer.alloc(12);
-                buf.writeUInt16LE(this.TagId,0);
+                buf.writeUInt16LE(TagId,0);
                 buf.writeUInt16LE(DataType.Long[0],2);
-                buf.writeUInt32LE(this.DataCount,4);
-                buf.writeUInt32LE(this.DataOffset,8);
-                buf.copy(this.buf,this.TagOffset,0,12);
+                buf.writeUInt32LE(DataCount,4);
+                buf.writeUInt32LE(DataOffset,8);
+                buf.copy(buf,TagOffset,0,12);
             }
             else
             {
-                if(this.selfContained)
+                if(selfContained)
                 {
                     let buf = Buffer.alloc(12);
-                    buf.writeUInt16LE(this.TagId,0);
-                    buf.writeUInt16LE(this.DataType[0],2);
-                    buf.writeUInt32LE(this.DataCount,4);
-                    this.Value.copy(buf,8,0,4)
-                    buf.copy(this.buf,this.TagOffset,0,12);
+                    buf.writeUInt16LE(TagId,0);
+                    buf.writeUInt16LE(DataType[0],2);
+                    buf.writeUInt32LE(DataCount,4);
+                    DataValue.copy(buf,8,0,4)
+                    buf.copy(buf,TagOffset,0,12);
                 }    
                 else
                 {
                     let buf = Buffer.alloc(12);
-                    buf.writeUInt16LE(this.TagId,0);
-                    buf.writeUInt16LE(this.DataType[0],2);
-                    buf.writeUInt32LE(this.DataCount,4);
-                    buf.writeUInt32LE(this.DataOffset,8);
-                    buf.copy(this.buf,this.TagOffset,0,12);
-                    this.Value.copy(this.buf,this.DataOffset,0,this.DataLength);
+                    buf.writeUInt16LE(TagId,0);
+                    buf.writeUInt16LE(DataType[0],2);
+                    buf.writeUInt32LE(DataCount,4);
+                    buf.writeUInt32LE(DataOffset,8);
+                    buf.copy(buf,TagOffset,0,12);
+                    DataValue.copy(buf,DataOffset,0,DataLength);
                 }
             }
         };

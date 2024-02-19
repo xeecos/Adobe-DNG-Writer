@@ -1,5 +1,8 @@
 #pragma once
 #include <vector>
+#include "tag.h"
+#include "ifd.h"
+using namespace std;
 class Header
 {
     public:
@@ -13,66 +16,48 @@ class Header
         };
         int IFDOffset;
 };
-
+struct ImageDataStrip
+{
+    unsigned char* data;
+    int length;
+};
 class DNG
 {
     public:
+        vector<ImageDataStrip> ImageDataStrips;
+        vector<int> StripOffsets;
         DNG()
         {
-            IFDs = []
-            ImageDataStrips = []
-            StripOffsets = {}
         }
-        void convert(image,tags,name,path)
+        void convert(unsigned char* image, vector<Tag*> tags, int width, int height, int bpp)
         {
-            let dngTemplate = new DNG()
+            DNG* dngTemplate = new DNG();
             // let rawFrame = self.__process__(image)
-            let rawFrame = image;
-            let width = tags.ImageWidth.rawValue[0];
-            let length = tags.ImageLength.rawValue[0];
-            let bpp = tags.BitsPerSample.rawValue[0];
-            let tile;
-            if(bpp == 8)
+            unsigned char* rawFrame = image;
+            
+            unsigned char* tile = rawFrame;
+            ImageDataStrip strip;
+            strip.data = tile;
+            strip.length = width * height * (bpp>8?2:1);
+            dngTemplate->ImageDataStrips.push_back(strip);
+            IFD *mainIFD = new IFD();
+            vector<int> tileOffsets;
+            vector<int> tileLengths;
+            for(int i=0;i<dngTemplate->ImageDataStrips.size();i++)
             {
-                tile = rawFrame;
+                tileLengths.push_back(dngTemplate->ImageDataStrips[i].length);
+                tileOffsets.push_back(0);
             }
-            else if(bpp == 10)
-            {
-                tile = DNG.pack10(rawFrame);
-            }
-            else if(bpp == 12)
-            {
-                tile = DNG.pack12(rawFrame);
-            }
-            else if(bpp == 14)
-            {
-                tile = DNG.pack14(rawFrame);
-            }
-            else if(bpp == 16)
-            {
-                tile = rawFrame;
-            }
-
-            dngTemplate.ImageDataStrips.push(tile)
-            let mainIFD = new IFD()
-            let tileOffsets = [];
-            let tileLengths = [];
-            for(let i=0;i<dngTemplate.ImageDataStrips.length;i++)
-            {
-                tileLengths.push(dngTemplate.ImageDataStrips[i].length)
-                tileOffsets.push(0);
-            }
-            console.log(tileOffsets)
-            let mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets)
-            mainIFD.tags.push(mainTagStripOffset)
-            mainIFD.tags.push(new Tag(TagType.NewSubfileType, [0]))
-            mainIFD.tags.push(new Tag(TagType.TileByteCounts,tileLengths))
-            mainIFD.tags.push(new Tag(TagType.Compression, [1]))
-            mainIFD.tags.push(new Tag(TagType.Software, "PyDNG"))
+            Tag *mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets);
+            mainIFD->tags.push_back(mainTagStripOffset);
+            mainIFD->tags.push_back(new Tag(TagType.NewSubfileType, [0]));
+            mainIFD->tags.push_back(new Tag(TagType.TileByteCounts,tileLengths));
+            mainIFD->tags.push_back(new Tag(TagType.Compression, [1]));
+            mainIFD->tags.push_back(new Tag(TagType.Software, "PyDNG"));
 
             for(let i in tags)
             {
-                mainIFD.tags.push(tags[i]);
+                mainIFD->tags.push_back(tags[i]);
             }
             dngTemplate.IFDs.push(mainIFD);
 
@@ -131,5 +116,5 @@ class DNG
             }
         }
     private:
-        vector<IFD> IFDs;
+        vector<IFD*> IFDs;
 }

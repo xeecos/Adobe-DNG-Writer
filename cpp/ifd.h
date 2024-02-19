@@ -4,48 +4,54 @@
 class IFD
 {
     public:
+        vector<Tag*> tags;
+        int NextIFDOffset;
         IFD()
         {
-            this.tags = []
-            NextIFDOffset = 0
+            NextIFDOffset = 0;
         };
 
-        void setBuffer(buf, offset)
+        void setBuffer(unsigned char*buf, int offset)
         {
-            this.buf = buf
-            this.offset = offset
-            let currentDataOffset = offset + 2 + this.tags.length*12 + 4
-            let currentTagOffset = offset + 2
-            this.tags.forEach(tag=>{
-                tag.setBuffer(buf, currentTagOffset, currentDataOffset);
+            mBuf = buf;
+            mOffset = offset;
+            int currentDataOffset = offset + 2 + tags.size()*12 + 4;
+            int currentTagOffset = offset + 2;
+            for(int i=0;i<tags.size();i++)
+            {   
+                Tag* tag = tags.at(i);
+                tag->setBuffer(buf, currentTagOffset, currentDataOffset);
                 currentTagOffset += 12;
-                currentDataOffset += tag.dataLen();
+                currentDataOffset += tag->dataLen();
                 currentDataOffset = (currentDataOffset + 3) & 0xFFFFFFFC;
-            })
+            }
         }
         int dataLen()
         {
-            let totalLength = 2 + this.tags.length*12 + 4;
-            this.tags.sort((a,b)=>{
+            int totalLength = 2 + tags.size()*12 + 4;
+            tags.sort((a,b)=>{
                 return a.TagId-b.TagId;
-            })
-            this.tags.forEach(tag=>{
-                totalLength += tag.dataLen()
             });
-            return (totalLength + 3) & 0xFFFFFFFC
+            for(int i=0;i<tags.size();i++)
+            {  
+                Tag* tag = tags.at(i);
+                totalLength += tag->dataLen();
+            };
+            return (totalLength + 3) & 0xFFFFFFFC;
         };
 
         void write()
         {
-            this.buf.writeUInt16LE(this.tags.length,this.offset);
-            this.tags.forEach(tag=>{
-                tag.write();
-            });
-            this.buf.writeUInt32LE(this.NextIFDOffset,this.offset + 2 + (this.tags.length)*12);
+            mBuf.writeUInt16LE(tags.size(),mOffset);
+            for(int i=0;i<tags.size();i++)
+            {
+                Tag* tag = tags.at(i);  
+                tag->write();
+            };
+            mBuf.writeUInt32LE(NextIFDOffset,mOffset + 2 + (tags.size())*12);
         };
     private:
-        vector<Tag> tags;
-        unsigned char* buf;
-        unsigned int offset;
+        unsigned char* mBuf;
+        unsigned int mOffset;
         unsigned int NextIFDOffset;
 };
