@@ -41,11 +41,11 @@ class DNG
                 tileOffsets.push_back(0);
             }
             Tag *mainTagStripOffset = new Tag(TagTypeList[TagTypeEnum::TileOffsets], tileOffsets);
-            // mainIFD->tags.push_back(mainTagStripOffset);
-            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::NewSubfileType], {0}));
-            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::TileByteCounts],tileLengths));
-            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Compression], {1}));
-            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Software], {"PyDNG"}));
+            mainIFD->tags.push_back(mainTagStripOffset);
+            mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::NewSubfileType], {0}));
+            mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::TileByteCounts],tileLengths));
+            mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Compression], {1}));
+            mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Software], {"PyDNG"}));
             for(int i = 0; i<tags.size(); i++)
             {
                 mainIFD->tags.push_back(tags[i]);

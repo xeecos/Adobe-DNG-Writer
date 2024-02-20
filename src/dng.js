@@ -32,11 +32,11 @@ class DNG
         }
         console.log(tileOffsets)
         let mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets)
-        // mainIFD.tags.push(mainTagStripOffset)
-        // mainIFD.tags.push(new Tag(TagType.NewSubfileType, [0]))
-        // mainIFD.tags.push(new Tag(TagType.TileByteCounts,tileLengths))
-        // mainIFD.tags.push(new Tag(TagType.Compression, [1]))
-        // mainIFD.tags.push(new Tag(TagType.Software, "PyDNG"))
+        mainIFD.tags.push(mainTagStripOffset)
+        mainIFD.tags.push(new Tag(TagType.NewSubfileType, [0]))
+        mainIFD.tags.push(new Tag(TagType.TileByteCounts,tileLengths))
+        mainIFD.tags.push(new Tag(TagType.Compression, [1]))
+        mainIFD.tags.push(new Tag(TagType.Software, "PyDNG"))
 
         for(let i in tags)
         {
@@ -50,7 +50,7 @@ class DNG
         {
             offsets.push(dngTemplate.StripOffsets[i]);
         }
-        // mainTagStripOffset.setValue(offsets);
+        mainTagStripOffset.setValue(offsets);
 
         let buf = Buffer.alloc(totalLength);
         dngTemplate.setBuffer(buf);

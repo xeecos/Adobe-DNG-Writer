@@ -3,6 +3,7 @@
 Tag::Tag(TagType tagType, vector<any> value)
 {
     // DataValue = new VBuf(255);
+    subIFD = NULL;
     Type = tagType;
     TagId = tagType.id;
     dataType = DataTypeList[tagType.dataType];
@@ -98,18 +99,18 @@ void Tag::setValue(vector<any> value)
     }
     else if (dataType.type == DataTypeEnum::Rational)
     {
-        DataValue = new VBuf(len * 2 * 4);
-        for (int i = 0; i < len * 2; i++)
+        DataValue = new VBuf(len * 4);
+        for (int i = 0; i < len; i++)
         {
             DataValue->writeUInt32LE(any_cast<int>(value[i]), i * 4);
         }
     }
     else if (dataType.type == DataTypeEnum::Srational)
     {
-        DataValue = new VBuf(len * 2 * 4);
-        for (int i = 0; i < len*2; i++)
+        DataValue = new VBuf(len * 4);
+        for (int i = 0; i < len; i++)
         {
-            DataValue->writeUInt32LE(any_cast<int>(value[i]), i * 4);
+            DataValue->writeInt32LE(any_cast<int>(value[i]), i * 4);
         }
     }
     else if (dataType.type == DataTypeEnum::Ascii)
@@ -173,6 +174,7 @@ int Tag::dataLen()
     {
         return 0;
     }
+
     return (DataValue->size() + 3) & 0xFFFFFFFC;
 }
 void Tag::write()
@@ -182,7 +184,7 @@ void Tag::write()
         subIFD->write();
         VBuf *buf = new VBuf(12);
         buf->writeUInt16LE(TagId, 0);
-        buf->writeUInt16LE(DataTypeList[DataTypeEnum::Long].size, 2);
+        buf->writeUInt16LE(DataTypeList[DataTypeEnum::Long].type, 2);
         buf->writeUInt32LE(DataCount, 4);
         buf->writeUInt32LE(DataOffset, 8);
         mBuf->copy(buf->raw(), TagOffset, 0, 12);
@@ -194,7 +196,7 @@ void Tag::write()
         {
             VBuf *buf = new VBuf(12);
             buf->writeUInt16LE(TagId, 0);
-            buf->writeUInt16LE(dataType.size, 2);
+            buf->writeUInt16LE(dataType.type, 2);
             buf->writeUInt32LE(DataCount, 4);
             buf->copy(DataValue->raw(), 8, 0, 4);
             mBuf->copy(buf->raw(), TagOffset, 0, 12);
@@ -204,7 +206,7 @@ void Tag::write()
         {
             VBuf *buf = new VBuf(12);
             buf->writeUInt16LE(TagId, 0);
-            buf->writeUInt16LE(dataType.size, 2);
+            buf->writeUInt16LE(dataType.type, 2);
             buf->writeUInt32LE(DataCount, 4);
             buf->writeUInt32LE(DataOffset, 8);
             mBuf->copy(buf->raw(), TagOffset, 0, 12);
