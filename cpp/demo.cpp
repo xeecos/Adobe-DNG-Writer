@@ -8,6 +8,7 @@ int main()
     const int bpp = 16;
     const int cmos_bits = 10;
     vector<Tag*> tags;
+    printf("2\n");
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::ImageWidth], {width}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::ImageLength], {height}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::TileWidth], {width}));
@@ -24,11 +25,16 @@ int main()
     // tags.push_back(new Tag(TagTypeList[TagTypeEnum::ColorMatrix2], ccm2));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::CalibrationIlluminant1], {21}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::AsShotNeutral], {1,1,1,1,1,1}));
+    printf("3\n");
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::DNGVersion], {1, 4, 0, 0}));
+    printf("3\n");
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::DNGBackwardVersion], {1, 2, 0, 0}));
+    printf("3\n");
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::Make], {"Camera Brand"}));
+    printf("3\n");
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::Model], {"Camera Model"}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::PreviewColorSpace], {2}));
+    printf("1\n");
     unsigned char * rawData = (unsigned char*)malloc(width*height*2);
     VBuf* buf = dng.convert(rawData, tags, width, height, bpp);
     return 0;

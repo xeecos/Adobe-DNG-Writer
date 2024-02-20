@@ -13,6 +13,7 @@ Tag::Tag(TagType tagType, vector<any> value)
 };
 void Tag::setValue(vector<any> value)
 {
+
     int len = value.size();
     if (dataType.type == DataTypeEnum::Byte)
     {
@@ -20,7 +21,7 @@ void Tag::setValue(vector<any> value)
         DataValue.size = len;
         for (int i = 0; i < len; i++)
         {
-            DataValue.data[i] = any_cast<char>(value.at(i));
+            DataValue.data[i] = any_cast<int>(value.at(i));
         }
     }
     else if (dataType.type == DataTypeEnum::Short)
@@ -29,7 +30,7 @@ void Tag::setValue(vector<any> value)
         DataValue.size = len * 2;
         for (int i = 0; i < len; i++)
         {
-            unsigned val = any_cast<unsigned short>(value[i]);
+            unsigned short val = any_cast<int>(value[i]);
             ushort2byte s2b;
             s2b.val = val;
             DataValue.data[i * 2] = s2b.b[0];
@@ -42,7 +43,7 @@ void Tag::setValue(vector<any> value)
         DataValue.size = len * 4;
         for (int i = 0; i < len; i++)
         {
-            short val = any_cast<long>(value[i]);
+            long val = any_cast<int>(value[i]);
             long2byte l2b;
             l2b.val = val;
             DataValue.data[i * 4] = l2b.b[0];
@@ -140,7 +141,7 @@ void Tag::setValue(vector<any> value)
         for (int i = 0; i < len * 2; i++)
         {
             uint2byte i2b;
-            i2b.val = any_cast<uint32_t>(value[i]);
+            i2b.val = any_cast<int>(value[i]);
             DataValue.data[i * 4] = i2b.b[0];
             DataValue.data[i * 4 + 1] = i2b.b[1];
             DataValue.data[i * 4 + 2] = i2b.b[2];
@@ -154,7 +155,7 @@ void Tag::setValue(vector<any> value)
         for (int i = 0; i < len; i++)
         {
             int2byte i2b;
-            i2b.val = any_cast<int32_t>(value[i]);
+            i2b.val = any_cast<int>(value[i]);
             DataValue.data[i * 4] = i2b.b[0];
             DataValue.data[i * 4 + 1] = i2b.b[1];
             DataValue.data[i * 4 + 2] = i2b.b[2];

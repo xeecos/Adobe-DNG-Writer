@@ -106,3 +106,5 @@ out.dng
 *.xmp
 *.txt
 .vscode
+*.o 
+demo
