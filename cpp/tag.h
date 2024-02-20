@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+using namespace std;
 struct DataBuffer
 {
     unsigned char* data;
@@ -14,11 +15,11 @@ class Tag
         int DataCount;
         int DataOffset;
         bool selfContained;
-        vector<double> rawValue;
+        vector<any> rawValue;
         int DataLength;
         char* subIFD;
         DataBuffer DataValue;
-        Tag(TagType tagType, vector<double> value)
+        Tag(TagType tagType, vector<any> value)
         {
             Type = tagType;
             TagId = tagType.id;
