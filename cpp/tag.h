@@ -18,11 +18,7 @@ namespace ifd
 {
     class IFD;
 };
-struct DataBuffer
-{
-    unsigned char* data;
-    int size;
-};
+
 class Tag
 {
     public:
@@ -35,7 +31,7 @@ class Tag
         vector<any> rawValue;
         int DataLength;
         ifd::IFD* subIFD;
-        DataBuffer DataValue;
+        VBuf* DataValue;
         int TagOffset;
         Tag(TagType tagType, vector<any> value);
         void setValue(vector<any> value);

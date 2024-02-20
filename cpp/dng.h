@@ -16,8 +16,10 @@ class DNG
     public:
         vector<ImageDataStrip> ImageDataStrips;
         vector<int> StripOffsets;
+        vector<ifd::IFD*> IFDs;
         DNG()
         {
+            StripOffsets.resize(1);
         }
         VBuf* convert(unsigned char* image, vector<Tag*> tags, int width, int height, int bpp)
         {
@@ -39,18 +41,16 @@ class DNG
                 tileOffsets.push_back(0);
             }
             Tag *mainTagStripOffset = new Tag(TagTypeList[TagTypeEnum::TileOffsets], tileOffsets);
-            mainIFD->tags.push_back(mainTagStripOffset);
+            // mainIFD->tags.push_back(mainTagStripOffset);
             // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::NewSubfileType], {0}));
             // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::TileByteCounts],tileLengths));
             // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Compression], {1}));
             // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Software], {"PyDNG"}));
-
             for(int i = 0; i<tags.size(); i++)
             {
                 mainIFD->tags.push_back(tags[i]);
             }
             dngTemplate->IFDs.push_back(mainIFD);
-
             int totalLength = dngTemplate->dataLen();
             vector<any> offsets;
             for(int i = 0; i < dngTemplate->StripOffsets.size(); i++)
@@ -86,6 +86,7 @@ class DNG
                 ifd::IFD* _ifd= IFDs[i];
                 totalLength += (_ifd->dataLen() + 3) & 0xFFFFFFFC;
             };
+            StripOffsets.resize(ImageDataStrips.size());
             for(int i=0,len = ImageDataStrips.size();i<len;i++)
             {
                 StripOffsets[i] = totalLength;
@@ -113,6 +114,5 @@ class DNG
             }
         }
     private:
-        vector<ifd::IFD*> IFDs;
         VBuf* mBuf;
 };

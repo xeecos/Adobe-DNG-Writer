@@ -145,6 +145,7 @@ class Tag
             }
             this.Value.copy(tmp,0,0,offset);
             this.Value = tmp;
+
         }
     }
 

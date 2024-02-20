@@ -22,9 +22,9 @@ class IFD
     dataLen()
     {
         let totalLength = 2 + this.tags.length*12 + 4;
-        this.tags.sort((a,b)=>{
-            return a.TagId-b.TagId;
-        })
+        // this.tags.sort((a,b)=>{
+        //     return a.TagId-b.TagId;
+        // })
         this.tags.forEach(tag=>{
             totalLength += tag.dataLen()
         });
