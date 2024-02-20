@@ -2,20 +2,10 @@
 #include <vector>
 #include "tag.h"
 #include "ifd.h"
+#include "types.h"
+#include "vbuf.h"
 using namespace std;
-class Header
-{
-    public:
-        Header()
-        {
-            IFDOffset = 8
-        }
-        const char* raw()
-        {
-            return {'I','I',0x2A,0x0,0x8,0,0,0};
-        };
-        int IFDOffset;
-};
+using namespace types;
 struct ImageDataStrip
 {
     unsigned char* data;
@@ -29,7 +19,7 @@ class DNG
         DNG()
         {
         }
-        void convert(unsigned char* image, vector<Tag*> tags, int width, int height, int bpp)
+        VBuf* convert(unsigned char* image, vector<Tag*> tags, int width, int height, int bpp)
         {
             DNG* dngTemplate = new DNG();
             // let rawFrame = self.__process__(image)
@@ -40,81 +30,89 @@ class DNG
             strip.data = tile;
             strip.length = width * height * (bpp>8?2:1);
             dngTemplate->ImageDataStrips.push_back(strip);
-            IFD *mainIFD = new IFD();
-            vector<int> tileOffsets;
-            vector<int> tileLengths;
+            ifd::IFD* mainIFD = new ifd::IFD();
+            vector<any> tileOffsets;
+            vector<any> tileLengths;
             for(int i=0;i<dngTemplate->ImageDataStrips.size();i++)
             {
                 tileLengths.push_back(dngTemplate->ImageDataStrips[i].length);
                 tileOffsets.push_back(0);
             }
-            Tag *mainTagStripOffset = new Tag(TagType.TileOffsets, tileOffsets);
+            Tag *mainTagStripOffset = new Tag(TagTypeList[TagTypeEnum::TileOffsets], tileOffsets);
             mainIFD->tags.push_back(mainTagStripOffset);
-            mainIFD->tags.push_back(new Tag(TagType.NewSubfileType, [0]));
-            mainIFD->tags.push_back(new Tag(TagType.TileByteCounts,tileLengths));
-            mainIFD->tags.push_back(new Tag(TagType.Compression, [1]));
-            mainIFD->tags.push_back(new Tag(TagType.Software, "PyDNG"));
+            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::NewSubfileType], {0}));
+            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::TileByteCounts],tileLengths));
+            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Compression], {1}));
+            // mainIFD->tags.push_back(new Tag(TagTypeList[TagTypeEnum::Software], {"PyDNG"}));
 
-            for(let i in tags)
+            for(int i = 0; i<tags.size(); i++)
             {
                 mainIFD->tags.push_back(tags[i]);
             }
-            dngTemplate.IFDs.push(mainIFD);
+            dngTemplate->IFDs.push_back(mainIFD);
 
-            let totalLength = dngTemplate.dataLen()
-            let offsets = [];
-            for(let i in dngTemplate.StripOffsets)
+            int totalLength = dngTemplate->dataLen();
+            vector<any> offsets;
+            for(int i = 0; i < dngTemplate->StripOffsets.size(); i++)
             {
-                offsets.push(dngTemplate.StripOffsets[i]);
+                offsets.push_back(dngTemplate->StripOffsets[i]);
             }
-            mainTagStripOffset.setValue(offsets);
+            mainTagStripOffset->setValue(offsets);
 
-            let buf = Buffer.alloc(totalLength);
-            dngTemplate.setBuffer(buf);
-            dngTemplate.write();
+            VBuf *buf = new VBuf(totalLength);
+            dngTemplate->setBuffer(buf);
+            dngTemplate->write();
             return buf;
         }
         
 
-        void setBuffer(buf)
+        void setBuffer(VBuf*buf)
         {
-            this.buf = buf
-            let currentOffset = 8
-            this.IFDs.forEach(ifd=>{
-                ifd.setBuffer(buf, currentOffset);
-                currentOffset += ifd.dataLen();
-            });
+            mBuf = buf;
+            int currentOffset = 8;
+            for(int i=0; i < IFDs.size(); i++)
+            {
+                ifd::IFD* _ifd= IFDs[i];
+                _ifd->setBuffer(mBuf, currentOffset);
+                currentOffset += _ifd->dataLen();
+            }
         }
             
         int dataLen()
         {
-            let totalLength = 8;
-            this.IFDs.forEach(ifd=>{
-                totalLength += (ifd.dataLen() + 3) & 0xFFFFFFFC
-            });
-            for(let i=0,len= this.ImageDataStrips.length;i<len;i++)
+            int totalLength = 8;
+            for(int i=0; i < IFDs.size(); i++)
             {
-                this.StripOffsets[i] = totalLength
-                let strip = this.ImageDataStrips[i]
-                totalLength += ((strip.length) + 3) & 0xFFFFFFFC
+                ifd::IFD* _ifd= IFDs[i];
+                totalLength += (_ifd->dataLen() + 3) & 0xFFFFFFFC;
+            };
+            for(int i=0,len = ImageDataStrips.size();i<len;i++)
+            {
+                StripOffsets[i] = totalLength;
+                ImageDataStrip strip = ImageDataStrips[i];
+                totalLength += ((strip.length) + 3) & 0xFFFFFFFC;
             }
-            return (totalLength + 3) & 0xFFFFFFFC
+            return (totalLength + 3) & 0xFFFFFFFC;
         }
         void write()
         {
-            this.buf.writeUInt8(0x49,0);
-            this.buf.writeUInt8(0x49,1);
-            this.buf.writeUInt8(0x2A,2);
-            this.buf.writeUInt8(0,3);
-            this.buf.writeUInt32LE(8,4);
-            this.IFDs.forEach(ifd=>{
-                ifd.write();
-            });
-            for(let i=0,len= this.ImageDataStrips.length;i<len;i++)
+            mBuf->writeUInt8(0x49,0);
+            mBuf->writeUInt8(0x49,1);
+            mBuf->writeUInt8(0x2A,2);
+            mBuf->writeUInt8(0,3);
+            mBuf->writeUInt32LE(8,4);
+            
+            for(int i=0; i < IFDs.size(); i++)
             {
-                this.ImageDataStrips[i].copy(this.buf,this.StripOffsets[i],0,(this.ImageDataStrips[i].length))
+                ifd::IFD* _ifd= IFDs[i];
+                _ifd->write();
+            }
+            for(int i=0,len = ImageDataStrips.size();i<len;i++)
+            {
+                mBuf->copy(ImageDataStrips[i].data, StripOffsets[i], 0, ImageDataStrips[i].length);
             }
         }
     private:
-        vector<IFD*> IFDs;
-}
+        vector<ifd::IFD*> IFDs;
+        VBuf* mBuf;
+};

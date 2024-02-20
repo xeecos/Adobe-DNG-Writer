@@ -1,7 +1,8 @@
 #include "dng.h"
+using namespace tag;
 int main()
 {
-    DNG dng();
+    DNG dng;
     const int width = 2304;
     const int height = 1296;
     const int bpp = 16;
@@ -19,8 +20,8 @@ int main()
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::CFAPattern], {2, 1, 1, 0}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::BlackLevel], {0}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::WhiteLevel], {(1 << cmos_bits) - 1}));
-    tags.push_back(new Tag(TagTypeList[TagTypeEnum::ColorMatrix1], ccm1));
-    tags.push_back(new Tag(TagTypeList[TagTypeEnum::ColorMatrix2], ccm2));
+    // tags.push_back(new Tag(TagTypeList[TagTypeEnum::ColorMatrix1], ccm1));
+    // tags.push_back(new Tag(TagTypeList[TagTypeEnum::ColorMatrix2], ccm2));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::CalibrationIlluminant1], {21}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::AsShotNeutral], {1,1,1,1,1,1}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::DNGVersion], {1, 4, 0, 0}));
@@ -28,7 +29,7 @@ int main()
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::Make], {"Camera Brand"}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::Model], {"Camera Model"}));
     tags.push_back(new Tag(TagTypeList[TagTypeEnum::PreviewColorSpace], {2}));
-
-    unsigned char* dngBuffer = dng.convert(rawData, tags, width, height, bpp);
+    unsigned char * rawData = (unsigned char*)malloc(width*height*2);
+    VBuf* buf = dng.convert(rawData, tags, width, height, bpp);
     return 0;
 }
