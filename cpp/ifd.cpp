@@ -24,9 +24,16 @@ namespace ifd
     int IFD::dataLen()
     {
         int totalLength = 2 + tags.size()*12 + 4;
-        // tags.sort((a,b)=>{
-        //     return a.TagId-b.TagId;
-        // });
+        Tag* t;
+        for(int i=1; i<tags.size(); i++) {
+            for(int j=0; j<tags.size()-i; j++) {
+                if(tags[j]->TagId>=tags[j+1]->TagId) {
+                    t=tags[j];
+                    tags[j]=tags[j+1];
+                    tags[j+1]=t;
+                }
+            }
+        }
         for(int i=0;i<tags.size();i++)
         {  
             Tag* tag = tags.at(i);
