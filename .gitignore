@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+out.dng
+*.xmp
+*.txt
+.vscode
+*.o 
+demo
